@@ -85,6 +85,7 @@ Phi = reshape(Phi, [], 1);
 % Combine all dimensions into a single matrix
 magnet_conf = [X, Y, Z, Theta, Phi].';
 
+magnet_conf = [0 0 0.2 0 0 0;0 0 0.2 0 pi/2 0;0 0 0.2 0 -pi/2 0;0 0 0.2 pi/2 0 0; 0 0 0.2 -pi/2 0 0].';
 
 %% Genetic algorithm
 lb = [-0.2/scale -0.2/scale 0.0 -1 -1 -1 -1 ...
@@ -102,12 +103,12 @@ options = optimoptions(@gamultiobj,'Display','iter', 'MaxStallGenerations', 2000
 fun = @(x) min_fun_orientation(x, magnet_conf, mu_norm, type);
 [sol, fval, exitflag, output] = gamultiobj(fun, length(lb), [], [], [], [], lb, ub, [], length(lb), options);
 
-save('results_4_3_axis_meter_max_rcond_min_rcond_2000gen_20000pop_upperhalfball')
+save('results_4_3_axis_meter_max_rcond_min_rcond_2000gen_20000pop_halfball')
 %%
 % Evaluate
 load('results_4_3_axis_meter_max_rcond_min_rcond_2000gen_20000pop_upperhalfball.mat')
 sens_conf = [sol];
-magnet_conf = [0;0;0.2;deg2rad(180);deg2rad(85)]
+% magnet_conf = [0;0;0.2;deg2rad(0);deg2rad(85)]
 [obj_rcond, min_rcond] = evaluate_with_orientation(sens_conf, magnet_conf, mu_norm, type);
 sol
 obj_rcond

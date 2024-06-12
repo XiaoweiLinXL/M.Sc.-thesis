@@ -1,4 +1,4 @@
-load("results_5_one_axis_meter_rcond_4workspace.mat")
+load("data_2.mat")
 
 %% Constants
 sens_dia = 0.5e-2;
@@ -98,8 +98,8 @@ if optimization == "gamultiobj"
         
     end
     
-    % Draw the magnet
-    %drawCylinder([0;0;0.2],[1;0;0;0], sens_dia, sens_hi)
+%     Draw the magnet
+    drawCylinder([0;0;0.2],[1;0;0;0], sens_dia, sens_hi)
 elseif optimization == "paretosearch"
     sens_conf = sol;
     sens_num = 3;
@@ -115,23 +115,23 @@ elseif optimization == "paretosearch"
     %drawCylinder([0;0;0.2],[1;0;0;0], sens_dia, sens_hi)
 end
 
-%% Plot sensor config from the max rcond
-sens_pos = sens_conf_max_rcond(1:3,:);
-sens_or = sens_conf_max_rcond(4:7,:);
-sens_num = sens_num_max_rcond;
-
-for i = 1:sens_num
-    drawCylinder(sens_pos(:, i), sens_or(:, i), sens_dia, sens_hi)
-end
-
-%% Plot sensor config from the max minB
-sens_pos = sens_conf_max_minB(1:3,:);
-sens_or = sens_conf_max_minB(4:7,:);
-sens_num = sens_num_max_minB;
-
-for i = 1:sens_num
-    drawCylinder(sens_pos(:, i), sens_or(:, i), sens_dia, sens_hi)
-end
+% %% Plot sensor config from the max rcond
+% sens_pos = sens_conf_max_rcond(1:3,:);
+% sens_or = sens_conf_max_rcond(4:7,:);
+% sens_num = sens_num_max_rcond;
+% 
+% for i = 1:sens_num
+%     drawCylinder(sens_pos(:, i), sens_or(:, i), sens_dia, sens_hi)
+% end
+% 
+% %% Plot sensor config from the max minB
+% sens_pos = sens_conf_max_minB(1:3,:);
+% sens_or = sens_conf_max_minB(4:7,:);
+% sens_num = sens_num_max_minB;
+% 
+% for i = 1:sens_num
+%     drawCylinder(sens_pos(:, i), sens_or(:, i), sens_dia, sens_hi)
+% end
 
 %% Functions
 function drawCylinder(P, Q, D, H)
@@ -174,8 +174,7 @@ function drawCylinder(P, Q, D, H)
     Z = Z + P(3);
 
     % Plot the cylinder
-    h = surf(X, Y, Z);
-    h.FaceColor = [1,0,0]; % Set the color of the cylinder to grey
+    surf(X, Y, Z, "FaceColor", "flat");
     % axis equal;
     % xlabel('X');
     % ylabel('Y');

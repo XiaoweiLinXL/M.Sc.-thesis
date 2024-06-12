@@ -109,8 +109,9 @@ fun = @(x) min_fun_orientation(x, magnet_conf, mu_norm, type);
 save('results_6_one_axis_meter_max_rcond_min_rcond_2000gen_20000pop')
 %%
 % Evaluate
-load('results_6_one_axis_meter_max_rcond_min_rcond_2000gen_20000pop.mat')
+load('results_4_3_axis_meter_max_rcond_min_rcond_2000gen_20000pop_upperhalfball.mat')
 sens_conf = [sol];
+magnet_conf = [0;0;0.2;rad2deg(90);rad2deg(0)]
 [obj_rcond, min_rcond] = evaluate_with_orientation(sens_conf, magnet_conf, mu_norm, type);
 sol
 obj_rcond
