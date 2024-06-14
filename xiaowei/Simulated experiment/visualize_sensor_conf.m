@@ -1,5 +1,5 @@
-load("data_2.mat")
-
+load("results_12_1_axis_multiobj_2000gen_20000pop_scaled_unit.mat")
+sol=sol(6884,:);
 %% Constants
 sens_dia = 0.5e-2;
 sens_hi = 1e-2;

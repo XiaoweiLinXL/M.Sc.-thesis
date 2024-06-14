@@ -26,7 +26,7 @@ B_r = 13.2;
 Volumn = (4/3)*pi*(norm(sph_dia)/2)^3; % volumn in the unit of (specified unit)^3
 
 delta = 1e-7;
-type = "1D";
+type = "3D";
 
 %% Magnet configurations with orientation
 % Workspace as a plane in m
@@ -58,38 +58,22 @@ lb = [-0.2/scale -0.2/scale 0.0 -1 -1 -1 -1 ...
       -0.2/scale -0.2/scale 0.0 -1 -1 -1 -1 ...
       -0.2/scale -0.2/scale 0.0 -1 -1 -1 -1 ...
       -0.2/scale -0.2/scale 0.0 -1 -1 -1 -1 ...
-      -0.2/scale -0.2/scale 0.0 -1 -1 -1 -1 ...
-      -0.2/scale -0.2/scale 0.0 -1 -1 -1 -1 ...
-      -0.2/scale -0.2/scale 0.0 -1 -1 -1 -1 ...
-      -0.2/scale -0.2/scale 0.0 -1 -1 -1 -1 ...
-      -0.2/scale -0.2/scale 0.0 -1 -1 -1 -1 ...
-      -0.2/scale -0.2/scale 0.0 -1 -1 -1 -1 ...
-      -0.2/scale -0.2/scale 0.0 -1 -1 -1 -1 ...
-      -0.2/scale -0.2/scale 0.0 -1 -1 -1 -1 ...
-      12];
+      4];
 ub = [0.2/scale 0.2/scale 0.0 1 1 1 1 ...
       0.2/scale 0.2/scale 0.0 1 1 1 1 ...
       0.2/scale 0.2/scale 0.0 1 1 1 1 ...
       0.2/scale 0.2/scale 0.0 1 1 1 1 ...
-      0.2/scale 0.2/scale 0.0 1 1 1 1 ...
-      0.2/scale 0.2/scale 0.0 1 1 1 1 ...
-      0.2/scale 0.2/scale 0.0 1 1 1 1 ...
-      0.2/scale 0.2/scale 0.0 1 1 1 1 ...
-      0.2/scale 0.2/scale 0.0 1 1 1 1 ...
-      0.2/scale 0.2/scale 0.0 1 1 1 1 ...
-      0.2/scale 0.2/scale 0.0 1 1 1 1 ...
-      0.2/scale 0.2/scale 0.0 1 1 1 1 ...
-      12];
+      4];
 options = optimoptions(@gamultiobj,'Display','iter', 'MaxStallGenerations', 2000, 'MaxGenerations', 2000, 'PopulationSize', 20000);
 
 fun = @(x) min_fun_orientation(x, magnet_conf, B_r, Volumn, type);
 constraint_fun = @(x) jacobian_constraint(x, magnet_conf, mu_norm, type);
 [sol, fval, exitflag, output] = gamultiobj(fun, length(lb), [], [], [], [], lb, ub, [], length(lb), options);
 
-save('results_12_1_axis_multiobj_2000gen_20000pop_scaled_unit')
+save('results_4_3_axis_min_rcond_2000gen_20000pop_scaled_unit')
 %%
 % Evaluate
-load('results_12_1_axis_multiobj_2000gen_20000pop_scaled_unit.mat')
+load('results_4_3_axis_min_rcond_2000gen_20000pop_scaled_unit.mat')
 sens_conf = [sol];
 [obj_rcond, min_rcond] = evaluate_with_orientation(sens_conf, magnet_conf, mu_norm, type);
 sol
@@ -763,7 +747,7 @@ function obj = min_fun_orientation(sens_conf, magnet_conf, B_r, Volumn, type)
     sens_or_unitary = sens_or ./ magnitudes;
     
     % Collect the reciprocal condition number for each magnet configuration
-    min_singular_value_set = [];
+    reciprocal_condition_number_set = [];
 
     for magnet_num=1:size(magnet_conf,2)
         magnet_pos = magnet_conf(1:3,magnet_num);
@@ -778,20 +762,21 @@ function obj = min_fun_orientation(sens_conf, magnet_conf, B_r, Volumn, type)
         end
 
         sigma = svd(J);
-        
-        num_dof = 5;
 
-        min_singular_value_set = [min_singular_value_set; sigma(num_dof)];
+        num_dof = 5;
+        reciprocal_condition_number = sigma(num_dof)/sigma(1);
+
+        reciprocal_condition_number_set = [reciprocal_condition_number_set; reciprocal_condition_number]; % Put the rcond for this magnet conf into the list
     end
 
     % Minimize the negative of the min in the list -> maximize the min in
     % the list
-    obj = [-min(min_singular_value_set)];
+    obj = [-min(reciprocal_condition_number_set)];
     
 %     % Maximize all the reciprocal condition number
 %     obj = [];
-%     for i = 1:size(min_singular_value_set,1)
-%         obj = [obj, -min_singular_value_set(i)];
+%     for i = 1:size(reciprocal_condition_number_set,1)
+%         obj = [obj, -reciprocal_condition_number_set(i)];
 %     end
 
 end

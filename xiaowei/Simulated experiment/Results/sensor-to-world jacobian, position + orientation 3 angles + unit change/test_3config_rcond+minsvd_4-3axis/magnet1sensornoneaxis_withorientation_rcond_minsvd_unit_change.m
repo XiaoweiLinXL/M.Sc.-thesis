@@ -5,7 +5,7 @@ clc
 
 %%
 % Spheres
-unit = 'meter';
+unit = 'decimeter';
 if strcmp(unit, 'meter') 
     scale = 1;
 elseif strcmp(unit, 'decimeter')
@@ -50,7 +50,9 @@ Phi = reshape(Phi, [], 1);
 % Combine all dimensions into a single matrix
 magnet_conf = [X, Y, Z, Theta, Phi].';
 
-magnet_conf = [0 0 0.2 0 0 0;0 0 0.2 0 pi/2 0;0 0 0.2 0 -pi/2 0;0 0 0.2 pi/2 0 0; 0 0 0.2 -pi/2 0 0].';
+magnet_conf = [0 0 0.2/scale 0 0 0;... 
+               0 0 0.2/scale deg2rad(90) deg2rad(0) 0; ...
+               0 0 0.2/scale deg2rad(0) deg2rad(90) 0].';
 
 
 %% Genetic algorithm
@@ -66,20 +68,24 @@ ub = [0.2/scale 0.2/scale 0.0 1 1 1 1 ...
       4];
 options = optimoptions(@gamultiobj,'Display','iter', 'MaxStallGenerations', 2000, 'MaxGenerations', 2000, 'PopulationSize', 20000);
 
-fun = @(x) min_fun_orientation(x, magnet_conf, mu_norm, type);
+fun = @(x) min_fun_orientation(x, magnet_conf, B_r, Volumn, type);
 constraint_fun = @(x) jacobian_constraint(x, magnet_conf, mu_norm, type);
 [sol, fval, exitflag, output] = gamultiobj(fun, length(lb), [], [], [], [], lb, ub, [], length(lb), options);
 
-save('results_4_3_axis_multiobj_2000gen_20000pop')
+save('results_4_3_axis_multiobj_2000gen_20000pop_scaled_unit')
 %%
 % Evaluate
-load('results_5_one_axis_meter_max_rcond_5000gen_5000pop.mat')
+load('results_4_3_axis_multiobj_2000gen_20000pop_scaled_unit.mat')
 sens_conf = [sol];
-[obj_rcond, min_rcond] = evaluate_with_orientation(sens_conf, magnet_conf, mu_norm, type);
+[obj_rcond, min_rcond, obj_svd, min_svd] = evaluate_with_orientation(sens_conf, magnet_conf, B_r, Volumn, type);
 sol
 obj_rcond
 min_rcond
+obj_svd
+min_svd
 
+%%
+scatter(min_rcond, min_svd)
 %% Jacobian test
 sens_conf = [0.2 0.2 0 1 0 0 0 ...
              0.2 -0.2 0 1 0 0 0 ...
@@ -123,10 +129,10 @@ end
 %% Jacobian test - scaled unit
 scale = 0.15;
 
-sens_conf = [0.3/scale 0.3/scale 0 1 0 0 0 ...
-             0.2/scale -0.2/scale 0 1 0 0 0 ...
-             -0.2/scale 0.2/scale 0 1 0 0 0 ...
-             -0.2/scale -0.2/scale 0 1 0 0 0 ...
+sens_conf = [0.5/scale 0.5/scale 0 1 0 0 0 ...
+             0.5/scale -0.5/scale 0 1 0 0 0 ...
+             -0.5/scale 0.5/scale 0 1 0 0 0 ...
+             -0.5/scale -0.5/scale 0 1 0 0 0 ...
              4];
 magnet_conf = [0;0;0.2/scale;deg2rad(0);deg2rad(0);deg2rad(0)];
 
@@ -733,7 +739,7 @@ function J = jacobian_analytical_sensor_reading_to_magnet_conf_spherical_ang(sen
 end
 
 %% Objective function
-function obj = min_fun_orientation(sens_conf, magnet_conf, mu_norm, type)
+function obj = min_fun_orientation(sens_conf, magnet_conf, B_r, Volumn, type)
     
     sens_num = sens_conf(end);
     sens_conf(end) = [];
@@ -747,7 +753,8 @@ function obj = min_fun_orientation(sens_conf, magnet_conf, mu_norm, type)
     sens_or_unitary = sens_or ./ magnitudes;
     
     % Collect the reciprocal condition number for each magnet configuration
-    reciprocal_condition_number_set = [];
+    rcond_set = [];
+    min_singular_value_set = [];
 
     for magnet_num=1:size(magnet_conf,2)
         magnet_pos = magnet_conf(1:3,magnet_num);
@@ -757,27 +764,27 @@ function obj = min_fun_orientation(sens_conf, magnet_conf, mu_norm, type)
         
         J = [];
         for i=1:sens_num
-            J = [J;jacobian_analytical_sensor_reading_to_magnet_conf_euler_angle_XYX(sens_pos(:,i), sens_or_unitary(:,i), ...
-                magnet_pos, mu_norm, theta, phi, psi, type)];
+            J = [J;J_analytical_sensor_B_to_magnet_conf_euler_angle_XYX_scaled_uni(sens_pos(:,i), sens_or_unitary(:,i), ...
+                magnet_pos, B_r, Volumn, theta, phi, psi, type)];
         end
 
         sigma = svd(J);
 
         num_dof = 5;
-        reciprocal_condition_number = sigma(num_dof)/sigma(1);
 
-        reciprocal_condition_number_set = [reciprocal_condition_number_set; reciprocal_condition_number]; % Put the rcond for this magnet conf into the list
+        min_singular_value_set = [min_singular_value_set;sigma(num_dof)];
+        rcond_set = [rcond_set; sigma(num_dof)/sigma(1)];
     end
 
-%     % Minimize the negative of the min in the list -> maximize the min in
-%     % the list
-%     obj = [-min(reciprocal_condition_number_set)];
+    % Minimize the negative of the min in the list -> maximize the min in
+    % the list
+    obj = [-min(min_singular_value_set),-min(rcond_set)];
     
-    % Maximize all the reciprocal condition number
-    obj = [];
-    for i = 1:size(reciprocal_condition_number_set,1)
-        obj = [obj, -reciprocal_condition_number_set(i)];
-    end
+%     % Maximize all the reciprocal condition number
+%     obj = [];
+%     for i = 1:size(min_singular_value_set,1)
+%         obj = [obj, -min_singular_value_set(i), -rcond_set(i)];
+%     end
 
 end
 
@@ -852,9 +859,10 @@ end
 
 
 %% Evaluation function
-function [obj_rcond, min_rcond] = evaluate_with_orientation(sens_conf, magnet_conf, mu_norm, type)
+function [obj_rcond, min_rcond, obj_svd, min_svd] = evaluate_with_orientation(sens_conf, magnet_conf, B_r, Volumn, type)
     optimal_sol_num = size(sens_conf, 1);
     obj_rcond = [];
+    obj_svd = [];
     obj_B = [];
     
 
@@ -870,7 +878,8 @@ function [obj_rcond, min_rcond] = evaluate_with_orientation(sens_conf, magnet_co
         sens_or = sens_conf_one(4:7,:);
         magnitudes = vecnorm(sens_or);
         sens_or_unitary = sens_or ./ magnitudes;
-
+        
+        min_svd_one_magnet_conf = [];
         reciprocal_number_one_magnet_conf = [];
         for magnet_num=1:size(magnet_conf,2)
 
@@ -881,8 +890,8 @@ function [obj_rcond, min_rcond] = evaluate_with_orientation(sens_conf, magnet_co
             
             J = [];
             for i=1:sens_num
-                J = [J;jacobian_analytical_sensor_reading_to_magnet_conf_euler_angle_XYX(sens_pos(:,i), sens_or_unitary(:,i), ...
-                    magnet_pos, mu_norm, theta, phi, psi, type)];
+                J = [J;J_analytical_sensor_B_to_magnet_conf_euler_angle_XYX_scaled_uni(sens_pos(:,i), sens_or_unitary(:,i), ...
+                    magnet_pos, B_r, Volumn, theta, phi, psi, type)];
             end
     
             sigma = svd(J);
@@ -891,9 +900,12 @@ function [obj_rcond, min_rcond] = evaluate_with_orientation(sens_conf, magnet_co
             reciprocal_condition_number = sigma(num_dof)/sigma(1);
             
             reciprocal_number_one_magnet_conf = [reciprocal_number_one_magnet_conf;reciprocal_condition_number];
+            min_svd_one_magnet_conf = [min_svd_one_magnet_conf; sigma(num_dof)];
         end
 
         obj_rcond = [obj_rcond, reciprocal_number_one_magnet_conf];
+        obj_svd = [obj_svd, min_svd_one_magnet_conf];
     end
     min_rcond = min(obj_rcond);
+    min_svd = min(obj_svd);
 end

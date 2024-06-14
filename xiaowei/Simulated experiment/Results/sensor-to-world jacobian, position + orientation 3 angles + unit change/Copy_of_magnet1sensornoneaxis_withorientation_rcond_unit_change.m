@@ -5,9 +5,9 @@ clc
 
 %%
 % Spheres
-unit = 'decimeter';
+unit = 'meter';
 if strcmp(unit, 'meter') 
-    scale = 1;
+    scale = 0.08;
 elseif strcmp(unit, 'decimeter')
     scale = 0.1;
 elseif strcmp(unit, 'centimeter')
@@ -121,16 +121,12 @@ for magnet_num=1:size(magnet_conf,2)
 end
 
 %% Jacobian test - scaled unit
-scale = 0.15;
-
-sens_conf = [0.5/scale 0.5/scale 0 1 0 0 0 ...
-             0.5/scale -0.5/scale 0 1 0 0 0 ...
-             -0.5/scale 0.5/scale 0 1 0 0 0 ...
-             -0.5/scale -0.5/scale 0 1 0 0 0 ...
+sens_conf = [0.17/scale 0.17/scale 0 1 0 0 0 ...
+             0.17/scale -0.17/scale 0 1 0 0 0 ...
+             -0.17/scale 0.17/scale 0 1 0 0 0 ...
+             -0.17/scale -0.17/scale 0 1 0 0 0 ...
              4];
 magnet_conf = [0;0;0.2/scale;deg2rad(0);deg2rad(0);deg2rad(0)];
-
-Volumn = Volumn / (scale^3);
 
 sens_num = sens_conf(end);
 sens_conf(end) = [];

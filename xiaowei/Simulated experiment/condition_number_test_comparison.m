@@ -29,7 +29,7 @@ grid on
 
 % Add text labels beside each data point
 for i = 1:length(sensor_number)
-    text(sensor_number(i)*3, max_min_rcond_set_multiobj(i), sprintf('%.4f', max_min_rcond_set_multiobj(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
+    text(sensor_number(i)*3, max_min_rcond_set_multiobj(i), sprintf('%.4f', max_min_rcond_set_multiobj(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right','Color','b');
 end
 
 hold on
@@ -125,7 +125,7 @@ grid on
 
 % Add text labels beside each data point
 for i = 1:length(sensor_number)
-    text(sensor_number(i)*3, min_reciprocal_condition_number_set_multiobj(i), sprintf('%.4f', min_reciprocal_condition_number_set_multiobj(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
+    text(sensor_number(i)*3, min_reciprocal_condition_number_set_multiobj(i), sprintf('%.4f', min_reciprocal_condition_number_set_multiobj(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right','Color','b');
 end
 
 hold on
@@ -133,7 +133,7 @@ hold on
 
 %% Plot the minimum condition number among the 5 optimized configurations Min rcond
 max_min_rcond_set_minrcond = [];
-for i = 2:9
+for i = 2:10
     % Load the solution
     % Construct the file name
     fileName = sprintf('results_%d_3_axis_minrcond_2000gen_20000pop.mat', i);
@@ -149,7 +149,7 @@ for i = 2:9
 end
 
 %% Plots min rcond - objectives
-sensor_number = [2;3;4;5;6;7;8;9];
+sensor_number = [2;3;4;5;6;7;8;9;10];
 plot(sensor_number*3, max_min_rcond_set_minrcond, ':ro', 'LineWidth',2, 'MarkerSize',8)
 ylim([0,0.1])
 grid on
@@ -158,9 +158,11 @@ grid on
 % Add text labels beside each data point
 for i = 1:length(sensor_number)
     if sensor_number(i) == 7
-        text(sensor_number(i)*3, max_min_rcond_set_minrcond(i)+0.005, sprintf('%.4f', max_min_rcond_set_minrcond(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
+        text(sensor_number(i)*3, max_min_rcond_set_minrcond(i)+0.002, sprintf('%.4f', max_min_rcond_set_minrcond(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right', 'Color','r');
+    elseif sensor_number(i) == 10
+        text(sensor_number(i)*3, max_min_rcond_set_minrcond(i)-0.005, sprintf('%.4f', max_min_rcond_set_minrcond(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right', 'Color','r');
     else
-        text(sensor_number(i)*3, max_min_rcond_set_minrcond(i), sprintf('%.4f', max_min_rcond_set_minrcond(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
+        text(sensor_number(i)*3, max_min_rcond_set_minrcond(i), sprintf('%.4f', max_min_rcond_set_minrcond(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right', 'Color','r');
     end
 end
 
@@ -173,7 +175,7 @@ hold on
 %% Get the minimum rcond among the entire workspace for min rcond optimization
 min_reciprocal_condition_number_set_minrcond = [];
 
-for i = 2:9
+for i = 2:10
     % Load the solution
     % Construct the file name
     fileName = sprintf('results_%d_3_axis_minrcond_2000gen_20000pop.mat', i);
@@ -252,7 +254,7 @@ for i = 2:9
 end
 
 %% Plots Min rcond - larger workspace
-sensor_number = [2;3;4;5;6;7;8;9];
+sensor_number = [2;3;4;5;6;7;8;9;10];
 plot(sensor_number*3, min_reciprocal_condition_number_set_minrcond, ':mo', 'LineWidth',2, 'MarkerSize',8)
 ylim([0,0.1])
 grid on
@@ -260,10 +262,10 @@ grid on
 
 % Add text labels beside each data point
 for i = 1:length(sensor_number)
-    if sensor_number(i) == 7
-        text(sensor_number(i)*3, min_reciprocal_condition_number_set_minrcond(i), sprintf('%.4f', min_reciprocal_condition_number_set_minrcond(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
+    if sensor_number(i) == 10
+        text(sensor_number(i)*3, min_reciprocal_condition_number_set_minrcond(i)+0.002, sprintf('%.4f', min_reciprocal_condition_number_set_minrcond(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right','Color','r');
     else
-        text(sensor_number(i)*3, min_reciprocal_condition_number_set_minrcond(i), sprintf('%.4f', min_reciprocal_condition_number_set_minrcond(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
+        text(sensor_number(i)*3, min_reciprocal_condition_number_set_minrcond(i), sprintf('%.4f', min_reciprocal_condition_number_set_minrcond(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right', 'Color','r');
     end
 end
 

@@ -89,8 +89,8 @@ constraint_fun = @(x) jacobian_constraint(x, magnet_conf, mu_norm, type);
 save('results_12_1_axis_multiobj_2000gen_20000pop_scaled_unit')
 %%
 % Evaluate
-load('results_5_one_axis_meter_max_rcond_5000gen_5000pop.mat')
-sens_conf = [sol];
+load('results_12_1_axis_multiobj_2000gen_20000pop_scaled_unit.mat')
+sens_conf = [sol(1837,:)];
 [obj_rcond, min_rcond] = evaluate_with_orientation(sens_conf, magnet_conf, mu_norm, type);
 sol
 obj_rcond
