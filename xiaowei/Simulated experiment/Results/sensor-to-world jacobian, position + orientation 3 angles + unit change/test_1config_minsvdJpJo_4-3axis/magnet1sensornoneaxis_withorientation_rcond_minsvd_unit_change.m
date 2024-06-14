@@ -752,6 +752,8 @@ function obj = min_fun_orientation(sens_conf, magnet_conf, B_r, Volumn, type)
     % Collect the reciprocal condition number for each magnet configuration
     rcond_set = [];
     min_singular_value_set = [];
+    min_singular_value_Jp_set = [];
+    min_singular_value_Jo_set = [];
 
     for magnet_num=1:size(magnet_conf,2)
         magnet_pos = magnet_conf(1:3,magnet_num);
@@ -771,7 +773,15 @@ function obj = min_fun_orientation(sens_conf, magnet_conf, B_r, Volumn, type)
 
         min_singular_value_set = [min_singular_value_set;sigma(num_dof)];
         rcond_set = [rcond_set; sigma(num_dof)/sigma(1)];
-end
+        
+        Jp = J(:,1:3);
+        Jo = J(:,4:6);
+        sigma_Jp = svd(Jp);
+        sigma_Jo = svd(Jo);
+
+        min_singular_value_Jp_set = [min_singular_value_Jp_set; sigma_Jp(3)];
+        min_singular_value_Jo_set = [min_singular_value_Jo_set; sigma_Jo(2)];
+    end
 
 %     % Minimize the negative of the min in the list -> maximize the min in
 %     % the list
@@ -780,7 +790,7 @@ end
     % Maximize all the reciprocal condition number
     obj = [];
     for i = 1:size(min_singular_value_set,1)
-        obj = [obj, -min_singular_value_set(i), -rcond_set(i)];
+        obj = [obj, -min_singular_value_Jp_set(i), -min_singular_value_Jo_set(i)];
     end
 
 end
