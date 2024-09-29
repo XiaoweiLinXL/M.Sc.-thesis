@@ -1,0 +1,193 @@
+%==============================================================================
+% ETHNEL - (ethnel.sty) Style file
+% A LaTeX package providing new style definitions and commands.
+% 2022.03: Jonas Enke
+% This package is based on the ASL style file by Péter Fankhauser and Eric A. Mueller.
+%==============================================================================
+\def\Presentation@Version{1.0}
+\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+\ProvidesPackage{ethnel}[2022/03/18, v. \Presentation@Version]
+\typeout{providing new style definitions and commands ---}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Colors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{color,setspace}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title page
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newif\ifbt
+\newif\ifst
+\newif\ifmt
+\DeclareOption{bt}{
+    \global\bttrue
+    \global\stfalse
+    \global\mtfalse
+}
+\DeclareOption{st}{
+    \global\btfalse
+    \global\sttrue
+    \global\mtfalse
+}
+\DeclareOption{mt}{
+    \global\btfalse
+    \global\stfalse
+    \global\mttrue
+}
+
+\newif\ifhs
+\DeclareOption{hs}{\global\hstrue}
+\DeclareOption{fs}{\global\hsfalse}
+
+\newif\ifingerman
+\DeclareOption{german}{\global\ingermantrue}
+\DeclareOption{english}{\global\ingermanfalse}
+
+\ExecuteOptions{bt,fs,english}
+\ProcessOptions
+
+%%%%%%%
+\newcommand{\@subtitle}{}
+\newcommand{\subtitle}[1]{\gdef\@subtitle{#1}}
+
+\newcommand{\@projectYear}{}
+\newcommand{\projectYear}[1]{\gdef\@projectYear{#1}}
+
+\newcommand{\@supervisionA}{}
+\newcommand{\supervisionA}[1]{\gdef\@supervisionA{#1}}
+
+\newif\ifsupervisionB
+\newcommand{\@supervisionB}{}
+\newcommand{\supervisionB}[1]{\gdef\@supervisionB{#1}\supervisionBtrue}
+
+\newif\ifsupervisionC
+\newcommand{\@supervisionC}{}
+\newcommand{\supervisionC}[1]{\gdef\@supervisionC{#1}\supervisionCtrue}
+
+\newcommand{\@studentA}{}
+\newcommand{\studentA}[1]{\gdef\@studentA{#1}}
+
+\newif\ifstudentB
+\newcommand{\@studentB}{}
+\newcommand{\studentB}[1]{\gdef\@studentB{#1}\studentBtrue}
+
+\newif\ifstudentC
+\newcommand{\@studentC}{}
+\newcommand{\studentC}[1]{\gdef\@studentC{#1}\studentCtrue}
+
+
+%%%%%%%
+% Definition of title page
+\renewcommand{\maketitle}{
+    
+    %\afterpage{
+        \newgeometry{vmargin={30mm}, hmargin={25mm,25mm}, headheight=13.6pt}
+        
+        \pagestyle{empty}
+        \doublespacing
+        \begin{center}
+        
+        
+        % Semester-, Bachelor-, Masterarbeit
+        \ifingerman
+        	\ifbt
+         		{\large  Bachelorarbeit}\\[3ex]
+         	\fi
+        	\ifst
+        	 	{\large  Semesterarbeit}\\[3ex]
+        	\fi
+        	\ifmt
+        		{\large  Masterarbeit}\\[3ex]
+        	\fi
+        \else
+        	\ifbt
+         		{\large  Bachelor Thesis}\\[3ex]
+         	\fi
+        	\ifst
+        	 	{\large  Semester Thesis}\\[3ex]
+        	\fi
+        	\ifmt
+        		{\large  Master Thesis}\\[3ex]
+        	\fi
+        \fi
+        
+        \vspace{3.3cm}
+        
+        \begin{tabular}{c}
+            \large \bf \@studentA\\
+            \large \bf \@studentB\\
+            \large \bf \@studentC\\
+        \end{tabular}
+        
+        \vspace{1cm}
+        
+        % advisors
+        \ifingerman
+         	{\footnotesize Betreut durch} 
+        \else
+         	{\footnotesize Advised by} 
+        \fi
+        
+        \begin{tabular}{c}
+            \@supervisionA\\
+            \@supervisionB\\
+            \@supervisionC\\
+        \end{tabular}
+        
+        \vspace{1.7cm}
+        Dupont Lab\\
+        Boston Children's Hospital, Harvard Medical School\\
+        \vspace{1.0cm}
+        Multi-Scale Robotics Lab (MSRL)\\
+        %Department of Health Sciences and Technology\\
+        Swiss Federal Institute of Technology Zurich (ETH)\\
+        
+        \vspace{1.0cm}
+        
+        % \ifingerman
+        % 	\ifhs
+        %  		{ \bf Herbstsemester \@projectYear}\\[3ex]
+        % 	\else
+        %  		{ \bf Fruehlingssemester \@projectYear}\\
+        % 	\fi
+        % \else
+        % 	\ifhs
+        %  		{ \bf Autumn Term \@projectYear}\\[3ex]
+        % 	\else
+        %  		{ \bf Spring Term \@projectYear}\\
+        % 	\fi
+        % \fi
+        { \bf April 2024}\\
+        
+        \vspace*{3cm}
+        
+        %logos
+        \hspace{1cm}
+        \begin{tabular*}{\linewidth}{p{11cm} r}
+        \includegraphics[height=13mm]{images/LogoBCHHarvard.png} & \includegraphics[height=13mm]{images/ETHlogo.png}
+        \end{tabular*}
+        
+        % title	
+        \onehalfspacing
+        \vspace{-21cm}	
+        {\LARGE \bf \@title \par}
+        
+        % subtitle
+        \if \@subtitle 
+        \else 
+        	\vspace{0.5cm}
+        	\LARGE \@subtitle
+        \fi
+        
+        \end{center}
+        
+        \singlespacing
+        \cleardoublepage
+        
+        \restoregeometry
+    %}
+}

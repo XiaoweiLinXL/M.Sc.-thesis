@@ -80,7 +80,7 @@ ub = [0.2/scale 0.2/scale 0.0 1 1 1 1 ...
       0.2/scale 0.2/scale 0.0 1 1 1 1 ...
       0.2/scale 0.2/scale 0.0 1 1 1 1 ...
       12];
-options = optimoptions(@gamultiobj,'Display','iter', 'MaxStallGenerations', 6000, 'MaxGenerations', 2000, 'PopulationSize', 20000);
+options = optimoptions(@gamultiobj,'Display','iter', 'MaxStallGenerations', 6000, 'MaxGenerations', 6000, 'PopulationSize', 20000);
 
 fun = @(x) min_fun_orientation(x, magnet_conf, B_r, Volumn, type);
 constraint_fun = @(x) jacobian_constraint(x, magnet_conf, mu_norm, type);
@@ -89,12 +89,16 @@ constraint_fun = @(x) jacobian_constraint(x, magnet_conf, mu_norm, type);
 save('results_12_1_axis_multiobj_6000gen_20000pop_scaled_unit')
 %%
 % Evaluate
-load('results_12_1_axis_multiobj_6000gen_20000pop_scaled_unit.mat')
+load('results_12_1_axis_multiobj_4000gen_20000pop_scaled_unit.mat')
 sens_conf = [sol];
-[obj_rcond, min_rcond] = evaluate_with_orientation(sens_conf, magnet_conf, B_r, Volumn, type);
+[obj_rcond, min_rcond, obj_svd, min_svd, obj_svd_Jp, obj_svd_Jo] = evaluate_with_orientation(sens_conf, magnet_conf, B_r, Volumn, type);
 sol
 obj_rcond
 min_rcond
+obj_svd
+min_svd
+obj_svd_Jp
+obj_svd_Jo
 
 %% Jacobian test
 sens_conf = [0.2 0.2 0 1 0 0 0 ...
@@ -867,11 +871,12 @@ end
 
 
 %% Evaluation function
-function [obj_rcond, min_rcond] = evaluate_with_orientation(sens_conf, magnet_conf, B_r, Volumn, type)
+function [obj_rcond, min_rcond, obj_svd, min_svd, obj_svd_Jp, obj_svd_Jo] = evaluate_with_orientation(sens_conf, magnet_conf, B_r, Volumn, type)
     optimal_sol_num = size(sens_conf, 1);
     obj_rcond = [];
-    obj_B = [];
-    
+    obj_svd = [];
+    obj_svd_Jp = [];
+    obj_svd_Jo = [];
 
     for num=1:optimal_sol_num
         sens_conf_one = sens_conf(num,:);
@@ -885,7 +890,10 @@ function [obj_rcond, min_rcond] = evaluate_with_orientation(sens_conf, magnet_co
         sens_or = sens_conf_one(4:7,:);
         magnitudes = vecnorm(sens_or);
         sens_or_unitary = sens_or ./ magnitudes;
-
+        
+        min_svd_one_magnet_conf = [];
+        min_svd_Jp_one_magnet_conf = [];
+        min_svd_Jo_one_magnet_conf = [];
         reciprocal_number_one_magnet_conf = [];
         for magnet_num=1:size(magnet_conf,2)
 
@@ -906,9 +914,26 @@ function [obj_rcond, min_rcond] = evaluate_with_orientation(sens_conf, magnet_co
             reciprocal_condition_number = sigma(num_dof)/sigma(1);
             
             reciprocal_number_one_magnet_conf = [reciprocal_number_one_magnet_conf;reciprocal_condition_number];
+            min_svd_one_magnet_conf = [min_svd_one_magnet_conf; sigma(num_dof)];
+
+            Jp = J(:,1:3);
+            Jo = J(:,4:6);
+
+            sigma_Jp = svd(Jp);
+            sigma_Jo = svd(Jo);
+
+            min_svd_Jp = sigma_Jp(3);
+            min_svd_Jo = sigma_Jo(2);
+            
+            min_svd_Jp_one_magnet_conf = [min_svd_Jp_one_magnet_conf; min_svd_Jp];
+            min_svd_Jo_one_magnet_conf = [min_svd_Jo_one_magnet_conf; min_svd_Jo];
         end
 
         obj_rcond = [obj_rcond, reciprocal_number_one_magnet_conf];
+        obj_svd = [obj_svd, min_svd_one_magnet_conf];
+        obj_svd_Jp = [obj_svd_Jp, min_svd_Jp_one_magnet_conf];
+        obj_svd_Jo = [obj_svd_Jo, min_svd_Jo_one_magnet_conf];
     end
     min_rcond = min(obj_rcond);
+    min_svd = min(obj_svd);
 end
