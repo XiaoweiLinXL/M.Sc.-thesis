@@ -3,12 +3,12 @@ close all
 clear
 clc
 %%
-load("results_9_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace_median_sigma_min.mat")
+load("results_16_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace_median_sigma_min.mat")
 rcond = -fval(:,1);
 sigma_min = -fval(:,2);
 
 sorted_sigma_min = sort(sigma_min);
-mid_point_sigma_min = sorted_sigma_min(end);
+mid_point_sigma_min = sorted_sigma_min(10);
 
 index = find(abs(sigma_min-mid_point_sigma_min)<1e-10);
 

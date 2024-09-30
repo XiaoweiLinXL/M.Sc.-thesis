@@ -116,7 +116,7 @@ magnet_conf = magnet_conf(:,1);
 
 %% Define the 9 sensors configuration located on the circle of different radius
 % Number of sensor
-sens_num = 9;
+sens_num = 16;
 
 % Define the radius
 radius = 0.01:0.001:1;
@@ -253,7 +253,7 @@ end
 figure
 scatter(rcond_all_sens_conf_circle, median_min_svd_all_sens_conf_circle)
 hold on
-load("results_5_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace_median_sigma_min.mat")
+load("results_16_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace_median_sigma_min.mat")
 scatter(-fval(:,1),-fval(:,2), 10, 'MarkerEdgeColor', [0.4660, 0.6740, 0.1880], 'MarkerFaceColor',[0.4660, 0.6740, 0.1880]);
 xlabel('$\min_{x\in \mathcal{X}} \frac{1}{\kappa}(x)$', 'FontSize', 12 , 'FontWeight', 'bold', 'Interpreter', 'latex')
 ylabel('$median_{x \in \mathcal{X}} \sigma_{min}(x)$', 'FontSize', 12 , 'FontWeight', 'bold', 'Interpreter', 'latex')
@@ -495,13 +495,13 @@ hold on
  
 grid on
 
-load('results_9_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace_median_sigma_min.mat')
-scatter(-fval(:,1),-fval(:,2)*24, 10, 'MarkerEdgeColor', [0.4660, 0.6740, 0.1880], 'MarkerFaceColor',[0.4660, 0.6740, 0.1880]);
+load('results_16_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace_median_sigma_min.mat')
+scatter(-fval(:,1),-fval(:,2), 10, 'MarkerEdgeColor', [0.4660, 0.6740, 0.1880], 'MarkerFaceColor',[0.4660, 0.6740, 0.1880]);
 hold on
 xlabel('$\min_{x\in \mathcal{X}} \frac{1}{\kappa}(x)$', 'FontSize', 12 , 'FontWeight', 'bold', 'Interpreter', 'latex')
 ylabel('$mean_{x \in \mathcal{X}} \sigma_{min}(x)$', 'FontSize', 12 , 'FontWeight', 'bold', 'Interpreter', 'latex')
 xlim([0 0.30])
-ylim([0 1.8e-5])
+ylim([0 2.5e-5])
 
 legend('sensors on circle', 'pareto front form GA', 'Location', 'southeast')
 
@@ -713,7 +713,7 @@ function [] = plot_points_with_arrows(x_coord, y_coord, color)
     
     % Set axis limits for better visualization
     xlim([0 0.30]);
-    ylim([0 1.8e-5]);
+    ylim([0 2.5e-5]);
     
     % Get the current axes position
     ax = gca;

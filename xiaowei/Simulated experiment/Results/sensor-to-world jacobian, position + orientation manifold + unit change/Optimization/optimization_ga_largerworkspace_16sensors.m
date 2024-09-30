@@ -133,7 +133,7 @@ fun = @(x) min_fun_orientation(x, magnet_conf, B_r, Volumn, type);
 save('results_16_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace_median_sigma_min')
 
 %% Plot pareto front
-load('results_16_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere.mat')
+load('results_16_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace_median_sigma_min.mat')
 figure
 scatter(-fval(:,1),-fval(:,2));
 hold on
