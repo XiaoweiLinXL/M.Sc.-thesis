@@ -33,29 +33,6 @@ mu_norm = norm(mu);
 delta = 1e-7;
 type = "3D";
 
-%% Magnet configurations with orientation
-% Workspace as a plane in unit
-x = [-0.05, 0, 0.05]/scale;
-y = [-0.05, 0, 0.05]/scale;
-z = [0.10, 0.15, 0.20] /scale;
-theta = [-pi/2, -pi/4, 0, pi/4, pi/2];
-phi = [-pi/2, -pi/4, 0, pi/4, pi/2];
-psi = [0];
-
-% Create grids for each dimension
-[X, Y, Z, Theta, Phi, Psi] = ndgrid(x, y, z, theta, phi, psi);
-
-% Reshape the grids into column vectors
-X = reshape(X, [], 1);
-Y = reshape(Y, [], 1);
-Z = reshape(Z, [], 1);
-Theta = reshape(Theta, [], 1);
-Phi = reshape(Phi, [], 1);
-Psi = reshape(Psi, [], 1);
-
-% Combine all dimensions into a single matrix
-magnet_conf = [X, Y, Z, Theta, Phi, Psi].';
-
 %% Magnet configurations with orientation spherical
 % phi_sphere = [0, pi/4, pi/2, 3*pi/4, pi, 5*pi/4, 3*pi/2, 7*pi/4];
 phi_sphere = linspace(0, 2*pi, 10);
@@ -128,7 +105,7 @@ options = optimoptions(@gamultiobj,'Display','iter', 'MaxStallGenerations', 1000
 fun = @(x) min_fun_orientation(x, magnet_conf, B_r, Volumn, type);
 [sol, fval, exitflag, output] = gamultiobj(fun, length(lb), [], [], [], [], lb, ub, [], length(lb), options);
 
-save('results_3_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace')
+save('results_3_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace_median_sigma_min')
 
 %% Plot pareto front
 load('results_3_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace.mat')
@@ -308,7 +285,7 @@ function obj = min_fun_orientation(sens_conf, magnet_conf, B_r, Volumn, type)
     end
     
     % Minimize the negative of the min -> maximize the min
-    obj = [-min(reciprocal_condition_number_set), -min(min_svd_set)];
+    obj = [-min(reciprocal_condition_number_set), -median(min_svd_set)];
 end
 
 function [c,ceq] = constraint(sens_conf, magnet_conf, B_r, Volumn, type)

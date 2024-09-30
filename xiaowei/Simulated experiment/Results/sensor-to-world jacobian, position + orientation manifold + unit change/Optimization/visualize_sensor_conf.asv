@@ -3,20 +3,17 @@ close all
 clear
 clc
 %%
-load("results_9_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace_median_sigma_min.mat")
+load("results_4_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace_median_sigma_min.mat")
 rcond = -fval(:,1);
 sigma_min = -fval(:,2);
 
-sorted_sigma_min = sort(sigma_min);
-mid_point_sigma_min = sorted_sigma_min(end);
+max_svd_index = find(sigma_min==max(sigma_min));
 
-index = find(abs(sigma_min-mid_point_sigma_min)<1e-10);
-
-fval(index,1)
-fval(index,2)
-sol = sol(index(1),:)
+fval(max_svd_index,1)
+fval(max_svd_index,2)
+sol = sol(max_svd_index,:)
 %% Constants
-sens_dia = 2e-2;
+sens_dia = 1e-2;
 sens_hi = 1e-2;
 
 %% Plot magnet plate
@@ -24,14 +21,16 @@ sens_hi = 1e-2;
 r = 0.05;
 centerX = 0;
 centerY = 0;
+zHeight = 0.15;
 
 % Parametric equation for the circle
 theta = linspace(0, 2*pi, 100); % Divide the circle into 100 points
 x = centerX + r * cos(theta);
 y = centerY + r * sin(theta);
+z = zHeight * ones(size(theta)); % Set all z-values to 0.15
 
 % Plot the circle
-plot(x, y, 'LineWidth', 2)
+plot3(x, y, z, 'LineWidth', 2)
 grid on 
 hold on
 
@@ -84,18 +83,7 @@ if optimization == "gamultiobj"
     sens_or = repmat(default_or, 1, sens_num);
     
     for i = 1:sens_num
-        radius = sens_dia/2;
-        centerX = sens_pos(1,i); % Replace with the x-coordinate of the center
-        centerY = sens_pos(2,i); % Replace with the y-coordinate of the center
-        
-        % Parametric equation for the circle
-        theta = linspace(0, 2*pi, 100); % Divide the circle into 100 points
-        circleX = centerX + radius * cos(theta);
-        circleY = centerY + radius * sin(theta);
-        
-        % Plot the circle
-        plot(circleX, circleY, 'LineWidth', 2, 'Color', 'black')
-
+        drawCylinder(sens_pos(:, i), sens_or(:, i), sens_dia, sens_hi)
 %         if i == 1
 %             first_sensor = sens_pos(:,1);
 %             second_sensor = sens_pos(:,2);
@@ -128,12 +116,6 @@ if optimization == "gamultiobj"
         
     end
     view(0,90)
-    legend("Magnet workspace" ,"Sensor")
-    xlim([-0.5, 0.5])
-    ylim([-0.5, 0.5])
-    xlabel("X (m)", 'Interpreter', 'latex')
-    ylabel("Y (m)", 'Interpreter', 'latex')
-    axis equal
     
 % %     Draw the magnet
 %     drawCylinder([0;0;0.2],[1;0;0;0], sens_dia, sens_hi)

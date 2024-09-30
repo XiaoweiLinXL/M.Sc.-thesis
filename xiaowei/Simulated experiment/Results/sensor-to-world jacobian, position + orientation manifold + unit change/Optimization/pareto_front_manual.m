@@ -116,10 +116,10 @@ magnet_conf = magnet_conf(:,1);
 
 %% Define the 9 sensors configuration located on the circle of different radius
 % Number of sensor
-sens_num = 4;
+sens_num = 9;
 
 % Define the radius
-radius = 0.01:0.001:0.5;
+radius = 0.01:0.001:1;
 
 % Initialize a cell array to hold all coordinates for each value of k
 all_coordinates = cell(1, length(radius));
@@ -231,7 +231,7 @@ for i = 1:length(all_coordinates)
     median_rcond_all_sens_conf_circle = [median_rcond_all_sens_conf_circle; median(rcond_one_sens_conf)];
     min_svd_all_sens_conf_circle = [min_svd_all_sens_conf_circle; min(min_svd_one_sens_conf)];
     mean_min_svd_all_sens_conf_circle = [mean_min_svd_all_sens_conf_circle; mean(min_svd_one_sens_conf)];
-    median_min_svd_all_sens_conf_circle = [median_min_svd_all_sens_conf_circle, median(min_svd_one_sens_conf)];
+    median_min_svd_all_sens_conf_circle = [median_min_svd_all_sens_conf_circle; median(min_svd_one_sens_conf)];
     average_svd_all_sens_conf_circle = [average_svd_all_sens_conf_circle; mean(average_sigma_one_sens_conf)];
 end
 
@@ -250,11 +250,13 @@ end
 % % load('results_4_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace_mean_sigma_mean_rcond.mat')
 % % scatter(-fval(:,1),-fval(:,2)*24, 10, 'MarkerEdgeColor', [0.4660, 0.6740, 0.1880], 'MarkerFaceColor',[0.4660, 0.6740, 0.1880]);
 % 
-% figure
+figure
 scatter(rcond_all_sens_conf_circle, median_min_svd_all_sens_conf_circle)
 hold on
-load("results_4_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace_median_sigma_min.mat")
-scatter(-fval(:,1),-fval(:,2)*24, 10, 'MarkerEdgeColor', [0.4660, 0.6740, 0.1880], 'MarkerFaceColor',[0.4660, 0.6740, 0.1880]);
+load("results_5_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace_median_sigma_min.mat")
+scatter(-fval(:,1),-fval(:,2), 10, 'MarkerEdgeColor', [0.4660, 0.6740, 0.1880], 'MarkerFaceColor',[0.4660, 0.6740, 0.1880]);
+xlabel('$\min_{x\in \mathcal{X}} \frac{1}{\kappa}(x)$', 'FontSize', 12 , 'FontWeight', 'bold', 'Interpreter', 'latex')
+ylabel('$median_{x \in \mathcal{X}} \sigma_{min}(x)$', 'FontSize', 12 , 'FontWeight', 'bold', 'Interpreter', 'latex')
 
 % % figure
 % scatter(median_rcond_all_sens_conf_circle, median_min_svd_all_sens_conf_circle)
@@ -484,24 +486,24 @@ scatter(rcond_all_sens_conf_square, min_svd_all_sens_conf_square)
 %% Pareto front
 figure
 hold on
-plot_points_with_arrows(rcond_all_sens_conf_circle, min_svd_all_sens_conf_circle, [0.8500, 0.3250, 0.0980])
+plot_points_with_arrows(rcond_all_sens_conf_circle, median_min_svd_all_sens_conf_circle, [0.8500, 0.3250, 0.0980])
 hold on
-plot_points_with_arrows(rcond_all_sens_conf_grid, min_svd_all_sens_conf_grid, [0.4940, 0.1840, 0.5560])
-hold on
+% plot_points_with_arrows(rcond_all_sens_conf_grid, min_svd_all_sens_conf_grid, [0.4940, 0.1840, 0.5560])
+% hold on
 % plot_points_with_arrows(rcond_all_sens_conf_square, min_svd_all_sens_conf_square, [0.6350, 0.0780, 0.1840])
 % hold on
  
 grid on
 
-load('results_4_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace.mat')
-scatter(-fval(:,1),-fval(:,2), 10, 'MarkerEdgeColor', [0.4660, 0.6740, 0.1880], 'MarkerFaceColor',[0.4660, 0.6740, 0.1880]);
+load('results_9_3_axis_multiobj_1000gen_1000pop_workspace048_distance10_finer_smaller_sphere_bigger_workspace_median_sigma_min.mat')
+scatter(-fval(:,1),-fval(:,2)*24, 10, 'MarkerEdgeColor', [0.4660, 0.6740, 0.1880], 'MarkerFaceColor',[0.4660, 0.6740, 0.1880]);
 hold on
-xlabel('$\chi$', 'Interpreter','latex','FontSize',11)
-ylabel('$\sigma_{min}$', 'Interpreter','latex','FontSize',11)
-xlim([0 0.25])
-ylim([0 1.0e-7])
+xlabel('$\min_{x\in \mathcal{X}} \frac{1}{\kappa}(x)$', 'FontSize', 12 , 'FontWeight', 'bold', 'Interpreter', 'latex')
+ylabel('$mean_{x \in \mathcal{X}} \sigma_{min}(x)$', 'FontSize', 12 , 'FontWeight', 'bold', 'Interpreter', 'latex')
+xlim([0 0.30])
+ylim([0 1.8e-5])
 
-legend('sensors on circle', 'sensors on grid', 'pareto front form GA', 'Location', 'southeast')
+legend('sensors on circle', 'pareto front form GA', 'Location', 'southeast')
 
 %% Chi distribution
 number_of_sensor_range = 4:1:4;
@@ -710,8 +712,8 @@ function [] = plot_points_with_arrows(x_coord, y_coord, color)
     hold on;
     
     % Set axis limits for better visualization
-    xlim([0 0.25]);
-    ylim([0 1.0e-7]);
+    xlim([0 0.30]);
+    ylim([0 1.8e-5]);
     
     % Get the current axes position
     ax = gca;

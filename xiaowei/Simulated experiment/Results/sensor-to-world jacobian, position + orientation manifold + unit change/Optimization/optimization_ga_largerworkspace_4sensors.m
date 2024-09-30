@@ -114,7 +114,7 @@ grid on
 xlabel('$\min_{x\in \mathcal{X}} \chi(x)$', 'Interpreter', 'latex')
 ylabel('$\min_{x\in \mathcal{X}} \sigma_{min}(x)$', 'Interpreter', 'latex')
 % title('Pareto front of the objectives')
-legend('Pareto front', 'Grid result')
+legend('Pareto front')
 
 %% jacobian test
 scale = 1;
