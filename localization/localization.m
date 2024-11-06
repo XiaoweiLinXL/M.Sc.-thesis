@@ -1,6 +1,0 @@
-%% 
-close all
-clear
-clc
-
-%%
