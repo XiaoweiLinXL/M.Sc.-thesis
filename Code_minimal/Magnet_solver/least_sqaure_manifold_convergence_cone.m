@@ -88,13 +88,6 @@ magnet_conf = points;
 sens_pos_collection = [0.30, 0,0,0,0.30,0,-0.30,0,0,0,-0.30,0]/scale;
 % sens_pos_collection = [1, 0,0,-1,0,0,0,1,0,0,-1,0]/scale;
 
-
-% sens_pos_collection = [0.1120, 0,0,-0.1120,0,0,0,0.1120,0,0,-0.1120,0]/scale;
-% sens_pos_collection = [0.25, 0,0,-0.25,0,0,0,0.25,0,0,-0.25,0]/scale;
-% sens_pos_collection = [0.3550, 0,0,-0.3550,0,0,0,0.3550,0,0,-0.3550,0]/scale;
-
-
-
 sens_pos_collection = [sens_pos_collection, 4];
 
 
@@ -159,7 +152,15 @@ for i = 1:length(stepsize_p)
         nan_columns = all(isnan([p_k_collection{:}]), 1);
         sum_NaN = sum(nan_columns);
 
-        result = [result, [stepsize_p(i);stepsize_R(j);num_not_correct_p+sum_NaN;num_not_correct_R+sum_NaN; mean_residual_p; mean_residual_R; elasped_time]]
+        result = [result, [stepsize_p(i);stepsize_R(j);num_not_correct_p+sum_NaN;num_not_correct_R+sum_NaN; mean_residual_p; mean_residual_R; elasped_time]];
+        fprintf('"stepsize_p": %.2f\n', stepsize_p(i));
+        fprintf('"stepsize_R": %.2f\n', stepsize_R(j));
+        fprintf('"Wrong Position": %d\n', num_not_correct_p + sum_NaN);
+        fprintf('"Wrong Orientation": %d\n', num_not_correct_R + sum_NaN);
+        fprintf('"Mean error p": %.2f\n', mean_residual_p);
+        fprintf('"Mean error R": %.2f\n', mean_residual_R);
+        fprintf('"Time used": %.2f seconds\n', elasped_time);
+
     end
 end
 

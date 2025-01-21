@@ -81,7 +81,7 @@ for i = 1:1
     angles = linspace(0, 2*pi, 4+1);
     angles(end) = []; % Remove the last element to get k points
     
-    % Calculate coordinates for the circle
+    % Calculate coordinates for the circle: r * cos(angles)
     x = 0.30 * cos(angles);
     y = 0.30 * sin(angles);
     
@@ -182,15 +182,21 @@ for i = 1:1
             max_residual_p_collection = [max_residual_p_collection, max_residual_p];
             max_residual_R_collection = [max_residual_R_collection, max_residual_R];
 
+            fprintf('"stepsize_p": %.2f\n', stepsize_p(i));
+            fprintf('"stepsize_R": %.2f\n', stepsize_R(j));
+            fprintf('"Wrong Position": %d\n', num_not_correct_p + num_NaN);
+            fprintf('"Wrong Orientation": %d\n', num_not_correct_R + num_NaN);
+            fprintf('"Diverged result": %d\n', num_NaN);
+            fprintf('"Mean error p": %.2f\n', mean_residual_p);
+            fprintf('"Mean error R": %.2f\n', mean_residual_R);
+            fprintf('"Time used": %.2f seconds\n', elasped_time);
+
             NaN_sum = [NaN_sum, num_NaN];
         end
     end
 end
-mean(mean_residual_p_collection)
-mean(mean_residual_R_collection)
-% mean(max_residual_p_collection)
-% mean(max_residual_R_collection)
-% sum(NaN_sum(:) ~= 0)
+mean(mean_residual_p_collection);
+mean(mean_residual_R_collection);
 
 % Gauss Newton Algorithm
 function [p_k_collection, R_k_collection, B_k_collection, ...
@@ -250,11 +256,6 @@ function [p_k_collection, R_k_collection, B_k_collection, ...
     B_k_collection = {};
     residual_B_collection = {};
     
-    
-
-    % multi_start_p = {[-0.63629;-1.03374;0.22846]/scale};
-    % multi_start_R = {[0.9952 -0.0342 -0.0922; -0.0581 0.5507 -0.8326; 0.0793 0.8339 0.5461]};
-
     lb_p = [-0.05, -0.05, 0.10]/scale;
     ub_p = [0.05, 0.05, 0.20]/scale;
     
@@ -262,7 +263,7 @@ function [p_k_collection, R_k_collection, B_k_collection, ...
     % Solve for each magnet configuration
     for magnet_conf_index = 1:size(magnet_conf,2)
 
-        % Initial guess
+        % Initial guess, start at the ground truth configuration
         multi_start_p = {p_star_collection{magnet_conf_index}};
         multi_start_R = {R_star_collection{magnet_conf_index}};
             
