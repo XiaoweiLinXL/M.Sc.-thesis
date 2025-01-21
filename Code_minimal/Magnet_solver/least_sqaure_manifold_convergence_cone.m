@@ -18,8 +18,8 @@ phi_sphere(end) = [];
 theta_sphere = linspace(0, pi, 7);
 theta_sphere(1) = [];
 theta_sphere(end) = [];
-theta = linspace(-pi/2+deg2rad(77.5),pi/2-deg2rad(77.5),5);
-phi = linspace(-pi/2+deg2rad(77.5),pi/2-deg2rad(77.5),5);
+theta = linspace(-pi/2+deg2rad(15),pi/2-deg2rad(15),5);
+phi = linspace(-pi/2+deg2rad(15), pi/2-deg2rad(15),5);
 
 % 0+deg2rad(30),pi-deg2rad(30),5
 % pi/2+deg2rad(30),3*pi/2-deg2rad(30),5

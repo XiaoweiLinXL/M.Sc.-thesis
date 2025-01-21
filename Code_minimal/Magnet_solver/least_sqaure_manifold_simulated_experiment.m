@@ -640,8 +640,19 @@ for i = 1:size(singular_value_with_projected_error, 2)
     sumArray = sumArray + singular_value_with_projected_error{i};
 end
 
-% Calculate the mean by dividing by the number of arrays (224)
+% Calculate the mean by dividing by the number of arrays (6720)
 meanArray = sumArray / size(singular_value_with_projected_error, 2);
+
+% Custom names for each line
+lineNames = {"sigma_i", "sigma_i/sigma_max", "projected_error", "projected_error/error"};
+
+% Loop through each row and print with custom names
+for i = 1:size(meanArray, 1)
+    fprintf('"%s": [', lineNames{i});
+    fprintf('%.2f ', meanArray(i, 1:end-1)); % Print all elements except the last with a space
+    fprintf('%.2f]\n', meanArray(i, end));   % Print the last element without an extra space
+end
+
 %% Extract the configs that do not converge
 index_not_converge = find(residual_R_collection>0.001);
 

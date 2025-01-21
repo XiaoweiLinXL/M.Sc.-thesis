@@ -728,15 +728,15 @@ fprintf('mean error R, p = [0,0.05,0.15m]: %.2f deg\n', mean(residual_R_angle_co
 residual_p_collection_n5015 = residual_p_collection(:, columns_n5015);
 residual_R_collection_n5015 = residual_R_collection(:, columns_n5015);
 residual_R_angle_collection_n5015 = residual_R_angle_collection(:, columns_n5015);
-fprintf('mean error p, p = [-0.05,0,0.15m]: %.2f mm\n', mean(residual_p_collection_n5015)*100);
-fprintf('mean error R, p = [-0.05,0,0.15m]: %.2f deg\n', mean(residual_R_angle_collection_n5015));
+fprintf('mean error p, p = [-0.05,0,0.15m]: %.2f mm\n', mean(residual_p_collection_0010)*100);
+fprintf('mean error R, p = [-0.05,0,0.15m]: %.2f deg\n', mean(residual_R_angle_collection_0010));
 
 
 residual_p_collection_0n515 = residual_p_collection(:, columns_0n515);
 residual_R_collection_0n515 = residual_R_collection(:, columns_0n515);
 residual_R_angle_collection_0n515 = residual_R_angle_collection(:, columns_0n515);
-fprintf('mean error p, p = [0,-0.05,0.15m]: %.2f mm\n', mean(residual_p_collection_0n515)*100);
-fprintf('mean error R, p = [0,-0.05,0.15m]: %.2f deg\n', mean(residual_R_angle_collection_0n515));
+fprintf('mean error p, p = [0,-0.05,0.15m]: %.2f mm\n', mean(residual_p_collection_0010)*100);
+fprintf('mean error R, p = [0,-0.05,0.15m]: %.2f deg\n', mean(residual_R_angle_collection_0010));
 
 %% Incremental step in least square algorithm
 function update = step(measurement, sens_pos_collection, p_k, B_r, Volumn, R_k, type)

@@ -13,238 +13,196 @@ type = "3D";
 plot_progress = false;
 iteration = 1000;
 
-%% Read the experiment data
-% Folder path
-folder = fullfile(pwd, "data_10cm");
+%% Simulated experiment configuration
+phi_sphere = linspace(0, 2*pi, 9);
+phi_sphere(end) = [];
+theta_sphere = linspace(0, pi, 7);
+theta_sphere(1) = [];
+theta_sphere(end) = [];
+theta = linspace(0, 2*pi, 9);
+theta(end) = [];
+phi = linspace(0, pi, 5);
+phi(end) = [];
+psi = [0];
+% theta = linspace(-pi,pi,9);
+% theta(end) = [];
+% phi = linspace(-pi/2,pi/2,9);
+psi = [0];
 
-% .mat files
-matFiles = dir(fullfile(folder, '*.mat'));
+[PHI_sphere, THETA_sphere, Theta, Phi, Psi] = ndgrid(phi_sphere, theta_sphere, theta, phi, psi);
 
-B_star = [];
-magnet_conf = [];
-B_star_multiple_time_stamps = {};
+PHI_sphere = reshape(PHI_sphere, [], 1);
+THETA_sphere = reshape(THETA_sphere, [], 1);
+Theta = reshape(Theta, [], 1);
+Phi = reshape(Phi, [], 1);
+Psi = reshape(Psi, [], 1);
 
-% Go through the data
-for i = 1:length(matFiles)
-    % Get the full path of the .mat file
-    matFilePath = fullfile(folder, matFiles(i).name);
+sphere = [PHI_sphere, THETA_sphere, Theta, Phi, Psi].';
 
-    % Load the .mat file
-    data = load(matFilePath);
+phi_sphere_extreme = [0];
+theta_sphere_extreme = [0,pi];
+[PHI_sphere, THETA_sphere, Theta, Phi, Psi] = ndgrid(phi_sphere_extreme, theta_sphere_extreme, theta, phi, psi);
+PHI_sphere = reshape(PHI_sphere, [], 1);
+THETA_sphere = reshape(THETA_sphere, [], 1);
+Theta = reshape(Theta, [], 1);
+Phi = reshape(Phi, [], 1);
+Psi = reshape(Psi, [], 1);
+
+sphere = [sphere, [PHI_sphere, THETA_sphere, Theta, Phi, Psi].'];
+
+points = [];
+
+r_array = linspace(0,5,6)*0.01; % 5*sqrt(3) cm
+r_array(1) = [];
+
+for i = 1:length(r_array)
+    for j = 1:size(sphere, 2)
+        phi = sphere(1, j);
+        theta = sphere(2, j);
+        r = r_array(i);
+        x = r*sin(theta)*cos(phi)/scale;
+        y = r*sin(theta)*sin(phi)/scale;
+        z = (r*cos(theta)+0.15)/scale;
     
-    % Process the loaded data (replace this with your actual processing code)
-    disp(['Processing file: ', matFiles(i).name]);
-
-    % Extract the filename without the extension, for the magnet
-    % configuration
-    [~, fileName, ~] = fileparts(matFiles(i).name);
-    
-    % Split the filename by the underscore "_"
-    parts = strsplit(fileName, '_');
-    
-    % Extract the first part and the second part (if they exist)
-    if length(parts) >= 2
-        firstPart = parts{1};  % Part before the first underscore
-        secondPart = parts{2}; % Part between the first and second underscores
-    elseif length(parts) == 1
-        firstPart = parts{1};  % If no underscore, entire name is the first part
-        secondPart = '';       % No second part available
-    else
-        firstPart = '';
-        secondPart = '';
-    end
-    
-    % Display the extracted parts
-    disp(['Position: ', firstPart]);
-    disp(['Y orientation: ', secondPart]);
-
-    if firstPart == "0010"
-        p_m = [0;0;0.1];
-    elseif  firstPart == "0015"
-        p_m = [0;0;0.15];
-    elseif firstPart == "0020"
-        p_m = [0;0;0.2];
-    elseif firstPart == "0n515"
-        p_m = [0;-0.05;0.15];
-    elseif firstPart == "n5015"
-        p_m = [-0.05;0;0.15];
-    elseif firstPart == "5015"
-        p_m = [0.05;0;0.15];
-    elseif firstPart == "0515"
-        p_m = [0;0.05;0.15];
-    end
-
-    if secondPart == "y0"
-        R_y = deg2rad(0);
-    elseif secondPart == "y45"
-        R_y = deg2rad(45);
-    elseif secondPart == "y90"
-        R_y = deg2rad(90);
-    elseif secondPart == "y135"
-        R_y = deg2rad(135);
-    end
-
-    
-    % Go through each saved field
-    for j = 1:length(data.save_element)
-        B_star = [B_star, mean(data.user_data.Field_filt(:, data.save_element(j)-11: data.save_element(j)), 2)];
-        B_star_multiple_time_stamps{end+1} = data.user_data.Field_filt(:, data.save_element(j)-11: data.save_element(j));
-
-        if j == 1
-            R_x = deg2rad(0);
-        elseif j == 2
-            R_x = deg2rad(45);
-        elseif j == 3
-            R_x = deg2rad(90);
-        elseif j == 4
-            R_x = deg2rad(135);
-        elseif j == 5
-            R_x = deg2rad(180);
-        elseif j == 6
-            R_x = deg2rad(225);
-        elseif j == 7
-            R_x = deg2rad(270);
-        elseif j == 8
-            R_x = deg2rad(315);
-        end
-
-        R = [R_y; R_x; 0];
-        
-        magnet_conf = [magnet_conf, [p_m;R]];
-
+        points = [points, [x;y;z;sphere(3,j);sphere(4,j);sphere(5,j)]];
     end
 end
+
+magnet_conf = points;
+
 %% Construct the ground truth magnetic field
-% Sensor positions
-% sens_pos_collection = [0.05, 0,0,0,0.05,0,-0.05,0,0,0,-0.05,0]/scale;
-% sens_pos_collection = [0.0459,-0.0016,0.0017, ...
-%                        -0.0015,0.0503,0.0028, ...
-%                        -0.0518,-0.0009,0.0013, ...
-%                        -0.0004,-0.0500,0.0007]/scale; % fminimax
-% sens_pos_collection = [0.0463,-0.0012,0.0015, ...
-%                        -0.0039,0.0507,0.0037, ...
-%                        -0.0537,-0.0015,0.0025, ...
-%                        -0.0040,-0.0515,0.0011]/scale; % lsqnonlin
+mean_residual_p_collection = [];
+mean_residual_R_collection = [];
+max_residual_p_collection = [];
+max_residual_R_collection = [];
+NaN_sum = [];
+for i = 1:1
+    % Angles for the points on the circle
+    angles = linspace(0, 2*pi, 4+1);
+    angles(end) = []; % Remove the last element to get k points
+    
+    % Calculate coordinates for the circle: r * cos(angles)
+    x = 0.30 * cos(angles);
+    y = 0.30 * sin(angles);
+    
+    % Store the coordinates
+    sens_pos_collection = [x', y'].';
 
-% sens_pos_collection = [0.10, 0,0,0,0.10,0,-0.10,0,0,0,-0.10,0]/scale;
-sens_pos_collection = [0.0972,-0.0013,0.0002, ...
-                       -0.0039,0.1015,0.0030, ...
-                       -0.1054,-0.0017,0.0029, ...
-                       -0.0038,-0.1017,-0.0003]/scale;
+    sens_num = size(sens_pos_collection,2);
+
+    % Add the line of zero as the z coordinate to the position of sensors
+    z_coordinate = zeros(1, size(sens_pos_collection, 2));
+    sens_pos_collection = [sens_pos_collection; z_coordinate]/scale;
+
+    sens_pos_collection = reshape(sens_pos_collection, 1, []);
+    sens_pos_collection = [sens_pos_collection, sens_num];
 
 
-% sens_pos_collection = [0.1120, 0,0,-0.1120,0,0,0,0.1120,0,0,-0.1120,0]/scale;
-% sens_pos_collection = [0.2150, 0,0,-0.2150,0,0,0,0.2150,0,0,-0.2150,0]/scale;
-% sens_pos_collection = [0.3550, 0,0,-0.3550,0,0,0,0.3550,0,0,-0.3550,0]/scale;
-% sens_pos_collection = [1, 0,0,-1,0,0,0,1,0,0,-1,0]/scale;
+    % % Sensor positions
+    % % sens_pos_collection = [0.05, 0,0,0,0.05,0,-0.05,0,0,0,-0.05,0]/scale;
+    % sens_pos_collection = [0.10, 0,0,0,0.10,0,-0.10,0,0,0,-0.10,0]/scale;
+    % % sens_pos_collection = [0.15, 0,0,0,0.15,0,-0.15,0,0,0,-0.15,0]/scale;
+    % % sens_pos_collection = [0.20, 0,0,0,0.20,0,-0.20,0,0,0,-0.20,0]/scale;
+    % 
+    % 
+    % % sens_pos_collection = [0.1120, 0,0,-0.1120,0,0,0,0.1120,0,0,-0.1120,0]/scale;
+    % % sens_pos_collection = [0.2150, 0,0,-0.2150,0,0,0,0.2150,0,0,-0.2150,0]/scale;
+    % % sens_pos_collection = [0.3550, 0,0,-0.3550,0,0,0,0.3550,0,0,-0.3550,0]/scale;
+    % % sens_pos_collection = [1, 0,0,-1,0,0,0,1,0,0,-1,0]/scale;
+    
+    
+    
+    % sens_pos_collection = [sens_pos_collection, 4];
+    
+    
+    p_star_collection = {};
+    R_star_collection = {};
+    B_star_collection = {};
+    
+    
+    for magnet_conf_index = 1:size(magnet_conf,2)
+        one_magnet_conf = magnet_conf(:, magnet_conf_index);
+        p_star = one_magnet_conf(1:3);
+        
+        theta_star = one_magnet_conf(4);
+        phi_star = one_magnet_conf(5);
+        psi_star = one_magnet_conf(6);
+    
+        Rx_1 = [1 0 0;                  % rotate about x-axis
+        0 cos(theta_star) -sin(theta_star);
+        0 sin(theta_star) cos(theta_star)];
+        
+        Ry = [cos(phi_star) 0 sin(phi_star);    % rotate about y-axis
+        0 1 0;
+        -sin(phi_star) 0 cos(phi_star)];
+    
+        Rx_2 = [1 0 0;                  % rotate about x-axis
+        0 cos(psi_star) -sin(psi_star);
+        0 sin(psi_star) cos(psi_star)];
+    
+        R_star = Ry * Rx_1;
+    
+        B_star = mag_field_vector(sens_pos_collection, p_star, B_r, Volumn, R_star);
+    
+        p_star_collection{end+1} = p_star;
+        R_star_collection{end+1} = R_star;
+        B_star_collection{end+1} = B_star;
+    end
+    
+    B_star_corrupted_collection = {};
+    % Add sensor noise
+    for i = 1:length(B_star_collection)
+        B_star_corrupted_collection{end+1} = B_star_collection{i} + 5e-8*randn(size(B_star_collection{i}));
+    end
+    
+    % Run the Gauss-Newton Algorithm
+    stepsize_p = 0.08:0.005:0.08;
+    stepsize_R = pi/2:pi/10:pi/2;
+    
+    result = [];
+    
+    for i = 1:length(stepsize_p)
+        for j = 1:length(stepsize_R)
+            [p_k_collection, R_k_collection, B_k_collection, ...
+             residual_B_collection, residual_p_collection, residual_R_collection, residual_R_angle_collection, ...
+             num_not_correct_p, num_not_correct_R, mean_residual_p, mean_residual_R, ...
+             max_residual_p, max_residual_R, elasped_time] = ...
+            Gauss_Newton(stepsize_p(i), stepsize_R(j), ...
+                         sens_pos_collection, magnet_conf, ...
+                         p_star_collection, R_star_collection, B_star_corrupted_collection, ...
+                         100, plot_progress, scale, B_r, Volumn, type);
+    
+            % Count those are NaNs
+            nan_columns = all(isnan([p_k_collection{:}]), 1);
+            num_NaN = sum(nan_columns);
+    
+            result = [result, [num_NaN;num_not_correct_p+num_NaN;num_not_correct_R+num_NaN; mean_residual_p; mean_residual_R; elasped_time]]
+            mean_residual_p_collection = [mean_residual_p_collection, mean_residual_p];
+            mean_residual_R_collection = [mean_residual_R_collection, mean_residual_R];
+            max_residual_p_collection = [max_residual_p_collection, max_residual_p];
+            max_residual_R_collection = [max_residual_R_collection, max_residual_R];
 
+            fprintf('"stepsize_p": %.2f\n', stepsize_p(i));
+            fprintf('"stepsize_R": %.2f\n', stepsize_R(j));
+            fprintf('"Wrong Position": %d\n', num_not_correct_p + num_NaN);
+            fprintf('"Wrong Orientation": %d\n', num_not_correct_R + num_NaN);
+            fprintf('"Diverged result": %d\n', num_NaN);
+            fprintf('"Mean error p": %.2f\n', mean_residual_p);
+            fprintf('"Mean error R": %.2f\n', mean_residual_R);
+            fprintf('"Time used": %.2f seconds\n', elasped_time);
 
-
-sens_pos_collection = [sens_pos_collection, 4];
-
-
-p_star_collection = {};
-R_star_collection = {};
-B_star_collection = {};
-B_star_multiple_time_stamps_collection = {};
-
-for magnet_conf_index = 1:size(magnet_conf,2)
-    one_magnet_conf = magnet_conf(:, magnet_conf_index);
-    p_star = one_magnet_conf(1:3);
-   
-    phi_star = one_magnet_conf(4);
-    theta_star = one_magnet_conf(5);
-
-    Ry = [cos(phi_star) 0 sin(phi_star);    % rotate about y-axis
-    0 1 0;
-    -sin(phi_star) 0 cos(phi_star)];
-
-    Rx = [1 0 0;                  % rotate about x-axis
-    0 cos(theta_star) -sin(theta_star);
-    0 sin(theta_star) cos(theta_star)];
-
-    R_star = Ry*Rx;
-
-    p_star_collection{end+1} = p_star/scale;
-    R_star_collection{end+1} = R_star;
-    B_star_collection{end+1} = B_star(:, magnet_conf_index)*1e-6;
-    B_star_multiple_time_stamps_collection{end+1} = B_star_multiple_time_stamps{magnet_conf_index}*1e-6;
-end
-
-% p_star_collection = {p_star_collection{2}};
-% R_star_collection = {R_star_collection{2}};
-% B_star_collection = {B_star_collection{2}};
-% magnet_conf = magnet_conf(:,2);
-
-%% Multiple measurement for one configuration
-% mean_residual_p = [];
-% mean_residual_R = [];
-% for i = 1:length(B_star_multiple_time_stamps_collection)
-%     B_collection_one_config = cell(1, size(B_star_multiple_time_stamps_collection{i}, 2));
-%     % Loop through each column and store it in the cell array
-%     for j = 1:size(B_star_multiple_time_stamps_collection{i}, 2)
-%         B_collection_one_config{j} = B_star_multiple_time_stamps_collection{i}(:, j);  % Store each column as a separate element in the cell array
-%     end
-% 
-%     p_star_collection_one_config = cell(1, size(B_star_multiple_time_stamps_collection{i}, 2));
-%     for j = 1:size(B_star_multiple_time_stamps_collection{i}, 2)
-%         p_star_collection_one_config{j} = p_star_collection{i};
-%     end
-% 
-%     R_star_collection_one_config = cell(1, size(B_star_multiple_time_stamps_collection{i}, 2));
-%     for j = 1:size(B_star_multiple_time_stamps_collection{i}, 2)
-%         R_star_collection_one_config{j} = R_star_collection{i};
-%     end
-% 
-% 
-%     magnet_conf_one_config = repmat(magnet_conf(:,i), 1, size(B_collection_one_config,2));
-% 
-%     stepsize_p = 0;
-%     stepsize_R = 0;
-%     [p_k_collection, R_k_collection, B_k_collection, ...
-%          residual_B_collection, residual_p_collection, residual_R_collection, residual_R_angle_collection, ...
-%          num_not_correct_p, num_not_correct_R, elasped_time] = ...
-%         Gauss_Newton(stepsize_p, stepsize_R, ...
-%                      sens_pos_collection, magnet_conf_one_config, ...
-%                      p_star_collection_one_config, R_star_collection_one_config, B_collection_one_config, ...
-%                      100, plot_progress, scale, B_r, Volumn, type);
-% 
-%     mean_residual_p = [mean_residual_p, mean(residual_p_collection)];
-%     mean_residual_R = [mean_residual_R, mean(residual_R_angle_collection)];
-% end
-% mean(mean_residual_p)
-% mean(mean_residual_R)
-
-%% Run the Gauss-Newton Algorithm
-stepsize_p = 0.08:0.005:0.08;
-stepsize_R = pi/2:pi/10:pi/2;
-
-result = [];
-
-for i = 1:length(stepsize_p)
-    for j = 1:length(stepsize_R)
-        [p_k_collection, R_k_collection, B_k_collection, ...
-         residual_B_collection, residual_p_collection, residual_R_collection, residual_R_angle_collection, ...
-         num_not_correct_p, num_not_correct_R, elasped_time] = ...
-        Gauss_Newton(stepsize_p(i), stepsize_R(j), ...
-                     sens_pos_collection, magnet_conf, ...
-                     p_star_collection, R_star_collection, B_star_collection, ...
-                     100, plot_progress, scale, B_r, Volumn, type);
-
-        % Count those are NaNs
-        nan_columns = all(isnan([p_k_collection{:}]), 1);
-        sum_NaN = sum(nan_columns);
-
-        result = [result, [stepsize_p(i);stepsize_R(j);num_not_correct_p+sum_NaN;num_not_correct_R+sum_NaN;elasped_time]]
+            NaN_sum = [NaN_sum, num_NaN];
+        end
     end
 end
-
-
+mean(mean_residual_p_collection);
+mean(mean_residual_R_collection);
 
 % Gauss Newton Algorithm
 function [p_k_collection, R_k_collection, B_k_collection, ...
           residual_B_collection, residual_p_collection, residual_R_collection, residual_R_angle_collection, ...
-          num_not_correct_p, num_not_correct_R, elasped_time] = ...
+          num_not_correct_p, num_not_correct_R, mean_residual_p, mean_residual_R, ...
+          max_residual_p, max_residual_R, elasped_time] = ...
          Gauss_Newton(stepsize_p, stepsize_R, ...
          sens_pos_collection, magnet_conf, ...
          p_star_collection, R_star_collection, B_star_collection, ...
@@ -305,10 +263,10 @@ function [p_k_collection, R_k_collection, B_k_collection, ...
     % Solve for each magnet configuration
     for magnet_conf_index = 1:size(magnet_conf,2)
 
-        % Initial guess
+        % Initial guess, start at the ground truth configuration
         multi_start_p = {p_star_collection{magnet_conf_index}};
         multi_start_R = {R_star_collection{magnet_conf_index}};
-        
+            
         % Plot the ground truth config
         if plot_progress
             one_magnet_conf = magnet_conf(:, magnet_conf_index);
@@ -575,11 +533,34 @@ function [p_k_collection, R_k_collection, B_k_collection, ...
     num_not_correct_p = sum(residual_p_collection>0.1);
     num_not_correct_R = sum(residual_R_angle_collection>5);
 
+    mean_residual_p = mean(residual_p_collection(~isnan(residual_p_collection)));
+    max_residual_p = max(residual_p_collection(~isnan(residual_p_collection)));
+    mean_residual_R = mean(residual_R_angle_collection(~isnan(residual_R_angle_collection)));
+
+    max_residual_R = max(residual_R_angle_collection(~isnan(residual_R_angle_collection)));
+
 end
 
-%% Projected error
-sens_num = sens_pos_collection(end);
-sens_pos_collection(end) = [];
+%% Projected error on the 5 singular vectors
+% Sensor position
+% Angles for the points on the circle
+angles = linspace(0, 2*pi, 4+1);
+angles(end) = []; % Remove the last element to get k points
+
+% Calculate coordinates for the circle
+x = 0.30 * cos(angles);
+y = 0.30 * sin(angles);
+
+% Store the coordinates
+sens_pos_collection = [x', y'].';
+
+sens_num = size(sens_pos_collection,2);
+
+% Add the line of zero as the z coordinate to the position of sensors
+z_coordinate = zeros(1, size(sens_pos_collection, 2));
+sens_pos_collection = [sens_pos_collection; z_coordinate]/scale;
+
+sens_pos_collection = reshape(sens_pos_collection, 1, []);
 sens_pos_collection = reshape(sens_pos_collection, 3, sens_num);
 
 % Default orientation
@@ -659,84 +640,111 @@ for i = 1:size(singular_value_with_projected_error, 2)
     sumArray = sumArray + singular_value_with_projected_error{i};
 end
 
-% Calculate the mean by dividing by the number of arrays (224)
+% Calculate the mean by dividing by the number of arrays (6720)
 meanArray = sumArray / size(singular_value_with_projected_error, 2);
 
 % Custom names for each line
-lineNames = {"sigma_i", "sigma_i/sigma_max", "projected_error", "projected_error/error"};
+lineNames = {"sigma_i", "sigma_i/sigma_1", "projected_error", "projected_error/error"};
 
 % Loop through each row and print with custom names
 for i = 1:size(meanArray, 1)
     fprintf('"%s": [', lineNames{i});
-    fprintf('%.2f ', meanArray(i, 1:end-1)); % Print all elements except the last with a space
-    fprintf('%.2f]\n', meanArray(i, end));   % Print the last element without an extra space
+    fprintf('%d ', meanArray(i, 1:end-1)); % Print all elements except the last with a space
+    fprintf('%d]\n', meanArray(i, end));   % Print the last element without an extra space
 end
-%% Process the results
-position_0010 = [0; 0; 0.1];
-position_0015 = [0; 0; 0.15];
-position_0020 = [0; 0; 0.20];
-position_5015 = [0.05; 0; 0.15];
-position_0515 = [0; 0.05; 0.15];
-position_n5015 = [-0.05; 0; 0.15];
-position_0n515 = [0; -0.05; 0.15];
 
-columns_0010 = all(magnet_conf(1:3, :) == position_0010, 1);
-columns_0015 = all(magnet_conf(1:3, :) == position_0015, 1);
-columns_0020 = all(magnet_conf(1:3, :) == position_0020, 1);
-columns_5015 = all(magnet_conf(1:3, :) == position_5015, 1);
-columns_0515 = all(magnet_conf(1:3, :) == position_0515, 1);
-columns_n5015 = all(magnet_conf(1:3, :) == position_n5015, 1);
-columns_0n515 = all(magnet_conf(1:3, :) == position_0n515, 1);
+%% Extract the configs that do not converge
+index_not_converge = find(residual_R_collection>0.001);
 
-residual_p_collection_0010 = residual_p_collection(:, columns_0010);
-residual_R_collection_0010 = residual_R_collection(:, columns_0010);
-residual_R_angle_collection_0010 = residual_R_angle_collection(:, columns_0010);
-fprintf('mean error p, p = [0,0,0.1m]: %.2f mm\n', mean(residual_p_collection_0010)*100);
-fprintf('mean error R, p = [0,0,0.1m]: %.2f deg\n', mean(residual_R_angle_collection_0010));
+p_star_not_converge = p_star_collection(index_not_converge);
+R_star_not_converge = R_star_collection(index_not_converge);
+p_k_not_converge = p_k_collection(index_not_converge);
+R_k_not_converge = R_k_collection(index_not_converge);
 
+% Plot the starting config
+% Plot the vector
+figure
+hold on
+quiver3(0,0,0.1, 0,0,0.05, 'r', 'LineWidth', 2, 'MaxHeadSize', 100);
 
+% Set axis limits to prevent automatic rescaling
+xlim([-0.5,0.5]);  % Adjust based on your data range
+ylim([-0.5,0.5]);
+zlim([-0.2,0.2]);
 
-residual_p_collection_0015 = residual_p_collection(:, columns_0015);
-residual_R_collection_0015 = residual_R_collection(:, columns_0015);
-residual_R_angle_collection_0015 = residual_R_angle_collection(:, columns_0015);
-fprintf('mean error p, p = [0,0,0.15m]: %.2f mm\n', mean(residual_p_collection_0015)*100);
-fprintf('mean error R, p = [0,0,0.15m]: %.2f deg\n', mean(residual_R_angle_collection_0015));
+% Extract the first n configs
+start_index = 1001;
+n = 100;
+p_star_not_converge_selection = p_star_not_converge(start_index:start_index+n-1);
+R_star_not_converge_selection = R_star_not_converge(start_index:start_index+n-1);
+p_k_not_converge_selection = p_k_not_converge(start_index:start_index+n-1);
+R_k_not_converge_selection = R_k_not_converge(start_index:start_index+n-1);
 
+colors = jet(n); % color vector
 
+for i = 1:size(p_star_not_converge_selection,2)
+    % Ground truth config
+    position = p_star_not_converge_selection{i};
+    rotation = R_star_not_converge_selection{i};
+    
+    u = [0;0;1];
+    direction = rotation*u;
 
-residual_p_collection_0020 = residual_p_collection(:, columns_0020);
-residual_R_collection_0020 = residual_R_collection(:, columns_0020);
-residual_R_angle_collection_0020 = residual_R_angle_collection(:, columns_0020);
-fprintf('mean error p, p = [0,0,0.20m]: %.2f mm\n', mean(residual_p_collection_0020)*100);
-fprintf('mean error R, p = [0,0,0.20m]: %.2f deg\n', mean(residual_R_angle_collection_0020));
+    arrow_length = 0.5;
+    direction = direction*arrow_length;
+    
+    quiver3(position(1), position(2), position(3), direction(1), direction(2), direction(3), ...
+        'LineWidth', 2, 'MaxHeadSize', 100, 'Color', colors(i,:));
+    
+    % Not converge config
+    position = p_k_not_converge_selection{i};
+    rotation = R_k_not_converge_selection{i};
 
+    u = [0;0;1];
+    direction = rotation*u;
 
-residual_p_collection_5015 = residual_p_collection(:, columns_5015);
-residual_R_collection_5015 = residual_R_collection(:, columns_5015);
-residual_R_angle_collection_5015 = residual_R_angle_collection(:, columns_5015);
-fprintf('mean error p, p = [0.05,0,0.15m]: %.2f mm\n', mean(residual_p_collection_5015)*100);
-fprintf('mean error R, p = [0.05,0,0.15m]: %.2f deg\n', mean(residual_R_angle_collection_5015));
+    arrow_length = 0.5;
+    direction = direction*arrow_length;
+    
+    quiver3(position(1), position(2), position(3), direction(1), direction(2), direction(3), ...
+            'LineWidth', 2, 'MaxHeadSize', 100, 'Color', colors(i,:));
+end
 
+% Define the vertices of the cube
+vertices = [
+    -0.05, -0.05, 0.05;  % Vertex 1
+    -0.05,  0.05, 0.05;  % Vertex 2
+     0.05, -0.05, 0.05;  % Vertex 3
+     0.05,  0.05, 0.05;  % Vertex 4
+    -0.05, -0.05, 0.15;  % Vertex 5
+    -0.05,  0.05, 0.15;  % Vertex 6
+     0.05, -0.05, 0.15;  % Vertex 7
+     0.05,  0.05, 0.15;  % Vertex 8
+];
 
-residual_p_collection_0515 = residual_p_collection(:, columns_0515);
-residual_R_collection_0515 = residual_R_collection(:, columns_0515);
-residual_R_angle_collection_0515 = residual_R_angle_collection(:, columns_0515);
-fprintf('mean error p, p = [0,0.05,0.15m]: %.2f mm\n', mean(residual_p_collection_0515)*100);
-fprintf('mean error R, p = [0,0.05,0.15m]: %.2f deg\n', mean(residual_R_angle_collection_0515));
+% Define the edges of the cube by connecting the vertices
+edges = [
+    1, 2;
+    1, 3;
+    2, 4;
+    3, 4;
+    5, 6;
+    5, 7;
+    6, 8;
+    7, 8;
+    1, 5;
+    2, 6;
+    3, 7;
+    4, 8;
+];
 
-
-residual_p_collection_n5015 = residual_p_collection(:, columns_n5015);
-residual_R_collection_n5015 = residual_R_collection(:, columns_n5015);
-residual_R_angle_collection_n5015 = residual_R_angle_collection(:, columns_n5015);
-fprintf('mean error p, p = [-0.05,0,0.15m]: %.2f mm\n', mean(residual_p_collection_n5015)*100);
-fprintf('mean error R, p = [-0.05,0,0.15m]: %.2f deg\n', mean(residual_R_angle_collection_n5015));
-
-
-residual_p_collection_0n515 = residual_p_collection(:, columns_0n515);
-residual_R_collection_0n515 = residual_R_collection(:, columns_0n515);
-residual_R_angle_collection_0n515 = residual_R_angle_collection(:, columns_0n515);
-fprintf('mean error p, p = [0,-0.05,0.15m]: %.2f mm\n', mean(residual_p_collection_0n515)*100);
-fprintf('mean error R, p = [0,-0.05,0.15m]: %.2f deg\n', mean(residual_R_angle_collection_0n515));
+% Plot the edges of the cube
+for i = 1:size(edges, 1)
+    plot3([vertices(edges(i, 1), 1), vertices(edges(i, 2), 1)], ...
+          [vertices(edges(i, 1), 2), vertices(edges(i, 2), 2)], ...
+          [vertices(edges(i, 1), 3), vertices(edges(i, 2), 3)], 'k', 'LineWidth', 2);
+end
+axis equal
 
 %% Incremental step in least square algorithm
 function update = step(measurement, sens_pos_collection, p_k, B_r, Volumn, R_k, type)
